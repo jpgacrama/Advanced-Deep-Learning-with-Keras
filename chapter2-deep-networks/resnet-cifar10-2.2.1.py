@@ -13,19 +13,19 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from tensorflow.keras.layers import Dense, Conv2D
-from tensorflow.keras.layers import BatchNormalization, Activation
-from tensorflow.keras.layers import AveragePooling2D, Input
-from tensorflow.keras.layers import Flatten, add
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.callbacks import ModelCheckpoint, LearningRateScheduler
-from tensorflow.keras.callbacks import ReduceLROnPlateau
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.regularizers import l2
-from tensorflow.keras.models import Model
-from tensorflow.keras.datasets import cifar10
-from tensorflow.keras.utils import plot_model
-from tensorflow.keras.utils import to_categorical
+from keras.layers import Dense, Conv2D
+from keras.layers import BatchNormalization, Activation
+from keras.layers import AveragePooling2D, Input
+from keras.layers import Flatten, add
+from keras.optimizers import Adam
+from keras.callbacks import ModelCheckpoint, LearningRateScheduler
+from keras.callbacks import ReduceLROnPlateau
+from keras.preprocessing.image import ImageDataGenerator
+from keras.regularizers import l2
+from keras.models import Model
+from keras.datasets import cifar10
+from keras.utils import plot_model
+from keras.utils import to_categorical
 import numpy as np
 import os
 import math
@@ -343,96 +343,99 @@ def resnet_v2(input_shape, depth, num_classes=10):
     model = Model(inputs=inputs, outputs=outputs)
     return model
 
+def main():
+    if version == 2:
+        model = resnet_v2(input_shape=input_shape, depth=depth)
+    else:
+        model = resnet_v1(input_shape=input_shape, depth=depth)
 
-if version == 2:
-    model = resnet_v2(input_shape=input_shape, depth=depth)
-else:
-    model = resnet_v1(input_shape=input_shape, depth=depth)
+    model.compile(loss='categorical_crossentropy',
+                optimizer=Adam(lr=lr_schedule(0)),
+                metrics=['acc'])
+    model.summary()
 
-model.compile(loss='categorical_crossentropy',
-              optimizer=Adam(lr=lr_schedule(0)),
-              metrics=['acc'])
-model.summary()
+    # enable this if pydot can be installed
+    # pip install pydot
+    #plot_model(model, to_file="%s.png" % model_type, show_shapes=True)
+    print(model_type)
 
-# enable this if pydot can be installed
-# pip install pydot
-#plot_model(model, to_file="%s.png" % model_type, show_shapes=True)
-print(model_type)
+    # prepare model model saving directory.
+    save_dir = os.path.join(os.getcwd(), 'saved_models')
+    model_name = 'cifar10_%s_model.{epoch:03d}.h5' % model_type
+    if not os.path.isdir(save_dir):
+        os.makedirs(save_dir)
+    filepath = os.path.join(save_dir, model_name)
 
-# prepare model model saving directory.
-save_dir = os.path.join(os.getcwd(), 'saved_models')
-model_name = 'cifar10_%s_model.{epoch:03d}.h5' % model_type
-if not os.path.isdir(save_dir):
-    os.makedirs(save_dir)
-filepath = os.path.join(save_dir, model_name)
+    # prepare callbacks for model saving and for learning rate adjustment.
+    checkpoint = ModelCheckpoint(filepath=filepath,
+                                monitor='val_acc',
+                                verbose=1,
+                                save_best_only=True)
 
-# prepare callbacks for model saving and for learning rate adjustment.
-checkpoint = ModelCheckpoint(filepath=filepath,
-                             monitor='val_acc',
-                             verbose=1,
-                             save_best_only=True)
+    lr_scheduler = LearningRateScheduler(lr_schedule)
 
-lr_scheduler = LearningRateScheduler(lr_schedule)
+    lr_reducer = ReduceLROnPlateau(factor=np.sqrt(0.1),
+                                cooldown=0,
+                                patience=5,
+                                min_lr=0.5e-6)
 
-lr_reducer = ReduceLROnPlateau(factor=np.sqrt(0.1),
-                               cooldown=0,
-                               patience=5,
-                               min_lr=0.5e-6)
+    callbacks = [checkpoint, lr_reducer, lr_scheduler]
 
-callbacks = [checkpoint, lr_reducer, lr_scheduler]
+    # run training, with or without data augmentation.
+    if not data_augmentation:
+        print('Not using data augmentation.')
+        model.fit(x_train, y_train,
+                batch_size=batch_size,
+                epochs=epochs,
+                validation_data=(x_test, y_test),
+                shuffle=True,
+                callbacks=callbacks)
+    else:
+        print('Using real-time data augmentation.')
+        # this will do preprocessing and realtime data augmentation:
+        datagen = ImageDataGenerator(
+            # set input mean to 0 over the dataset
+            featurewise_center=False,
+            # set each sample mean to 0
+            samplewise_center=False,
+            # divide inputs by std of dataset
+            featurewise_std_normalization=False,
+            # divide each input by its std
+            samplewise_std_normalization=False,
+            # apply ZCA whitening
+            zca_whitening=False,
+            # randomly rotate images in the range (deg 0 to 180)
+            rotation_range=0,
+            # randomly shift images horizontally
+            width_shift_range=0.1,
+            # randomly shift images vertically
+            height_shift_range=0.1,
+            # randomly flip images
+            horizontal_flip=True,
+            # randomly flip images
+            vertical_flip=False)
 
-# run training, with or without data augmentation.
-if not data_augmentation:
-    print('Not using data augmentation.')
-    model.fit(x_train, y_train,
-              batch_size=batch_size,
-              epochs=epochs,
-              validation_data=(x_test, y_test),
-              shuffle=True,
-              callbacks=callbacks)
-else:
-    print('Using real-time data augmentation.')
-    # this will do preprocessing and realtime data augmentation:
-    datagen = ImageDataGenerator(
-        # set input mean to 0 over the dataset
-        featurewise_center=False,
-        # set each sample mean to 0
-        samplewise_center=False,
-        # divide inputs by std of dataset
-        featurewise_std_normalization=False,
-        # divide each input by its std
-        samplewise_std_normalization=False,
-        # apply ZCA whitening
-        zca_whitening=False,
-        # randomly rotate images in the range (deg 0 to 180)
-        rotation_range=0,
-        # randomly shift images horizontally
-        width_shift_range=0.1,
-        # randomly shift images vertically
-        height_shift_range=0.1,
-        # randomly flip images
-        horizontal_flip=True,
-        # randomly flip images
-        vertical_flip=False)
+        # compute quantities required for featurewise normalization
+        # (std, mean, and principal components if ZCA whitening is applied).
+        datagen.fit(x_train)
 
-    # compute quantities required for featurewise normalization
-    # (std, mean, and principal components if ZCA whitening is applied).
-    datagen.fit(x_train)
-
-    steps_per_epoch =  math.ceil(len(x_train) / batch_size)
-    # fit the model on the batches generated by datagen.flow().
-    model.fit(x=datagen.flow(x_train, y_train, batch_size=batch_size),
-              verbose=1,
-              epochs=epochs,
-              validation_data=(x_test, y_test),
-              steps_per_epoch=steps_per_epoch,
-              callbacks=callbacks)
+        steps_per_epoch =  math.ceil(len(x_train) / batch_size)
+        # fit the model on the batches generated by datagen.flow().
+        model.fit(x=datagen.flow(x_train, y_train, batch_size=batch_size),
+                verbose=1,
+                epochs=epochs,
+                validation_data=(x_test, y_test),
+                steps_per_epoch=steps_per_epoch,
+                callbacks=callbacks)
 
 
-# score trained model
-scores = model.evaluate(x_test,
-                        y_test,
-                        batch_size=batch_size,
-                        verbose=0)
-print('Test loss:', scores[0])
-print('Test accuracy:', scores[1])
+    # score trained model
+    scores = model.evaluate(x_test,
+                            y_test,
+                            batch_size=batch_size,
+                            verbose=0)
+    print('Test loss:', scores[0])
+    print('Test accuracy:', scores[1])
+
+if __name__ == "__main__":
+    main()
