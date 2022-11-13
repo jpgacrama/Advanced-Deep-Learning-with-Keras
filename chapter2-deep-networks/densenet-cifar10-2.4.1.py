@@ -15,18 +15,18 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from tensorflow.keras.layers import Dense, Conv2D, BatchNormalization
-from tensorflow.keras.layers import MaxPooling2D, AveragePooling2D
-from tensorflow.keras.layers import Input, Flatten, Dropout
-from tensorflow.keras.layers import concatenate, Activation
-from tensorflow.keras.optimizers import RMSprop
-from tensorflow.keras.callbacks import ModelCheckpoint, ReduceLROnPlateau
-from tensorflow.keras.callbacks import LearningRateScheduler
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.models import Model
-from tensorflow.keras.datasets import cifar10
-from tensorflow.keras.utils import plot_model
-from tensorflow.keras.utils import to_categorical
+from keras.layers import Dense, Conv2D, BatchNormalization
+from keras.layers import MaxPooling2D, AveragePooling2D
+from keras.layers import Input, Flatten, Dropout
+from keras.layers import concatenate, Activation
+from keras.optimizers import RMSprop
+from keras.callbacks import ModelCheckpoint, ReduceLROnPlateau
+from keras.callbacks import LearningRateScheduler
+from keras.preprocessing.image import ImageDataGenerator
+from keras.models import Model
+from keras.datasets import cifar10
+from keras.utils import plot_model
+from keras.utils import to_categorical
 import os
 import numpy as np
 import math
