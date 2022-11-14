@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 '''Trains DCGAN on MNIST using Keras
 
 DCGAN is a Generative Adversarial Network (GAN) using CNN.
