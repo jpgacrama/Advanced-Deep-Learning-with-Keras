@@ -7,13 +7,13 @@ generative adversarial networks." arXiv preprint arXiv:1511.06434 (2015).
 '''
 
 
-from tensorflow.keras.layers import Activation, Dense, Input
-from tensorflow.keras.layers import Conv2D, Flatten
-from tensorflow.keras.layers import Reshape, Conv2DTranspose
-from tensorflow.keras.layers import LeakyReLU
-from tensorflow.keras.layers import BatchNormalization
-from tensorflow.keras.layers import concatenate
-from tensorflow.keras.models import Model
+from keras.layers import Activation, Dense, Input
+from keras.layers import Conv2D, Flatten
+from keras.layers import Reshape, Conv2DTranspose
+from keras.layers import LeakyReLU
+from keras.layers import BatchNormalization
+from keras.layers import concatenate
+from keras.models import Model
 
 import numpy as np
 import math
