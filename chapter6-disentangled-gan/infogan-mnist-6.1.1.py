@@ -20,13 +20,13 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from tensorflow.keras.layers import Input
-from tensorflow.keras.optimizers import RMSprop
-from tensorflow.keras.models import Model
-from tensorflow.keras.datasets import mnist
-from tensorflow.keras.utils import to_categorical
-from tensorflow.keras.models import load_model
-from tensorflow.keras import backend as K
+from keras.layers import Input
+from keras.optimizers import RMSprop
+from keras.models import Model
+from keras.datasets import mnist
+from keras.utils import to_categorical
+from keras.models import load_model
+from keras import backend as K
 
 import numpy as np
 import argparse
