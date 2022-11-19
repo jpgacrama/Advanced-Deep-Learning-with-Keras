@@ -40,14 +40,14 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from tensorflow.keras.layers import Activation, Dense, Input
-from tensorflow.keras.layers import Conv2D, Flatten
-from tensorflow.keras.layers import Conv2DTranspose
-from tensorflow.keras.layers import LeakyReLU
-from tensorflow.keras.layers import concatenate
-from tensorflow.keras.optimizers import RMSprop
-from tensorflow.keras.models import Model
-from tensorflow.keras.models import load_model
+from keras.layers import Activation, Dense, Input
+from keras.layers import Conv2D, Flatten
+from keras.layers import Conv2DTranspose
+from keras.layers import LeakyReLU
+from keras.layers import concatenate
+from keras.optimizers import RMSprop
+from keras.models import Model
+from keras.models import load_model
 
 # from keras_contrib.layers.normalization import InstanceNormalization
 # from keras_contrib.layers.normalization.instancenormalization import InstanceNormalization
