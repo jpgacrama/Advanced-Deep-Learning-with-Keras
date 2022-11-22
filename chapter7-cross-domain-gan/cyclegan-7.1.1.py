@@ -600,9 +600,11 @@ if __name__ == '__main__':
 
     # load pre-trained cifar10 source & target generators
     if args.cifar10_g_source:
-        g_source = load_model(args.cifar10_g_source)
+        g_source = load_model(args.cifar10_g_source,
+            custom_objects={'InstanceNormalization': InstanceNormalization})
         if args.cifar10_g_target:
-            g_target = load_model(args.cifar10_g_target)
+            g_target = load_model(args.cifar10_g_target,
+                custom_objects={'InstanceNormalization': InstanceNormalization})
             g_models = (g_source, g_target)
             graycifar10_cross_colorcifar10(g_models)
     # load pre-trained mnist-svhn source & target generators
