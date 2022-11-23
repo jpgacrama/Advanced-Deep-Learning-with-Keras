@@ -115,7 +115,7 @@ def plot_results(models,
 
     plt.figure(figsize=(10, 10))
     start_range = digit_size // 2
-    end_range = n * digit_size + start_range + 1
+    end_range = n * digit_size + start_range
     pixel_range = np.arange(start_range, end_range, digit_size)
     sample_range_x = np.round(grid_x, 1)
     sample_range_y = np.round(grid_y, 1)
@@ -230,3 +230,4 @@ if __name__ == '__main__':
                  data,
                  batch_size=batch_size,
                  model_name="vae_mlp")
+

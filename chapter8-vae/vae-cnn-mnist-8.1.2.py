@@ -17,14 +17,14 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from tensorflow.keras.layers import Dense, Input
-from tensorflow.keras.layers import Conv2D, Flatten, Lambda
-from tensorflow.keras.layers import Reshape, Conv2DTranspose
-from tensorflow.keras.models import Model
-from tensorflow.keras.datasets import mnist
-from tensorflow.keras.losses import mse, binary_crossentropy
-from tensorflow.keras.utils import plot_model
-from tensorflow.keras import backend as K
+from keras.layers import Dense, Input
+from keras.layers import Conv2D, Flatten, Lambda
+from keras.layers import Reshape, Conv2DTranspose
+from keras.models import Model
+from keras.datasets import mnist
+from keras.losses import mse, binary_crossentropy
+from keras.utils import plot_model
+from keras import backend as K
 
 import numpy as np
 import matplotlib.pyplot as plt
