@@ -227,7 +227,15 @@ plot_model(decoder,
 outputs = decoder([encoder([inputs, y_labels])[2], y_labels])
 cvae = Model([inputs, y_labels], outputs, name='cvae')
 
+# define our clear function
+def clear():
+    if os.name == 'nt':
+        _ = os.system('cls')
+    else:
+        _ = os.system('clear')
+
 if __name__ == '__main__':
+    clear()
     parser = argparse.ArgumentParser()
     help_ = "Load tf model trained weights"
     parser.add_argument("-w", "--weights", help=help_)
