@@ -124,12 +124,18 @@ class QAgent:
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
 
+def clear():
+    if os.name == 'nt':
+        _ = os.system('cls')
+    else:
+        _ = os.system('clear')
 
 if __name__ == '__main__':
+    clear()
     parser = argparse.ArgumentParser(description=None)
     parser.add_argument('env_id',
                         nargs='?',
-                        default='FrozenLake-v0',
+                        default='FrozenLake-v1',
                         help='Select the environment to run')
     help_ = "Demo learned Q Table"
     parser.add_argument("-d",
