@@ -26,7 +26,7 @@ class QAgent:
             slippery (Bool): 2 versions of FLv0 env
             episodes (int): number of episodes to train
         """
-        
+
         self.action_space = action_space
         # number of columns is equal to number of actions
         col = action_space.n
@@ -40,7 +40,7 @@ class QAgent:
 
         # initially 90% exploration, 10% exploitation
         self.epsilon = 0.9
-        # iteratively applying decay til 
+        # iteratively applying decay til
         # 10% exploration/90% exploitation
         self.epsilon_min = 0.1
         self.epsilon_decay = self.epsilon_min / self.epsilon
@@ -49,14 +49,14 @@ class QAgent:
 
         # learning rate of Q-Learning
         self.learning_rate = 0.1
-        
+
         # file where Q Table is saved on/restored fr
         if slippery:
             self.filename = 'q-frozenlake-slippery.npy'
         else:
             self.filename = 'q-frozenlake.npy'
 
-        # demo or train mode 
+        # demo or train mode
         self.demo = demo
         # if demo mode, no exploration
         if demo:
@@ -93,7 +93,7 @@ class QAgent:
                 executing the action
             next_state (tensor): the environment next state
         """
-        # Q(s, a) += 
+        # Q(s, a) +=
         # alpha * (reward + gamma * max_a' Q(s', a') - Q(s, a))
         q_value = self.gamma * np.amax(self.q_table[next_state])
         q_value += reward
@@ -130,7 +130,7 @@ def clear():
     else:
         _ = os.system('clear')
 
-if __name__ == '__main__':
+def main():
     clear()
     parser = argparse.ArgumentParser(description=None)
     parser.add_argument('env_id',
@@ -172,8 +172,8 @@ if __name__ == '__main__':
         env.is_slippery = False
 
     if args.delay is not None:
-        delay = args.delay 
-    else: 
+        delay = args.delay
+    else:
         delay = 0
 
     # number of times the Goal state is reached
@@ -214,8 +214,8 @@ if __name__ == '__main__':
 
             if not args.demo:
                 agent.update_q_table(state,
-                                     action, 
-                                     reward, 
+                                     action,
+                                     reward,
                                      next_state)
                 agent.update_epsilon()
 
@@ -236,4 +236,7 @@ if __name__ == '__main__':
     if not args.demo and not args.explore:
         agent.save_q_table()
     # close the env and write monitor result info to disk
-    env.close() 
+    env.close()
+
+if __name__ == '__main__':
+    main()
