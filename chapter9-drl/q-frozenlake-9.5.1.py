@@ -3,7 +3,6 @@
 
 """
 
-from collections import deque
 import numpy as np
 import argparse
 import os
