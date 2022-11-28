@@ -3,9 +3,9 @@
 
 """
 
-from tensorflow.keras.layers import Dense, Input
-from tensorflow.keras.models import Model
-from tensorflow.keras.optimizers import Adam
+from keras.layers import Dense, Input
+from keras.models import Model
+from keras.optimizers import Adam
 from collections import deque
 import numpy as np
 import random
@@ -15,8 +15,8 @@ from gym import wrappers, logger
 
 class DQNAgent:
     def __init__(self,
-                 state_space, 
-                 action_space, 
+                 state_space,
+                 action_space,
                  episodes=500):
         """DQN Agent on CartPole-v0 environment
 
@@ -35,7 +35,7 @@ class DQNAgent:
 
         # initially 90% exploration, 10% exploitation
         self.epsilon = 1.0
-        # iteratively applying decay til 
+        # iteratively applying decay til
         # 10% exploration/90% exploitation
         self.epsilon_min = 0.1
         self.epsilon_decay = self.epsilon_min / self.epsilon
@@ -56,7 +56,7 @@ class DQNAgent:
 
         self.replay_counter = 0
 
-    
+
     def build_model(self, n_inputs, n_outputs):
         """Q Network is 256-256-256 MLP
 
@@ -72,7 +72,7 @@ class DQNAgent:
         x = Dense(256, activation='relu')(x)
         x = Dense(256, activation='relu')(x)
         x = Dense(n_outputs,
-                  activation='linear', 
+                  activation='linear',
                   name='action')(x)
         q_model = Model(inputs, x)
         q_model.summary()
@@ -120,7 +120,7 @@ class DQNAgent:
 
     def get_target_q_value(self, next_state, reward):
         """compute Q_max
-           Use of target Q Network solves the 
+           Use of target Q Network solves the
             non-stationarity problem
         Arguments:
             reward (float): reward received after executing
@@ -131,7 +131,7 @@ class DQNAgent:
         """
         # max Q value among next state's actions
         # DQN chooses the max Q value among next actions
-        # selection and evaluation of action is 
+        # selection and evaluation of action is
         # on the target Q Network
         # Q_max = max_a' Q_target(s', a')
         q_value = np.amax(\
@@ -144,10 +144,10 @@ class DQNAgent:
 
 
     def replay(self, batch_size):
-        """experience replay addresses the correlation issue 
+        """experience replay addresses the correlation issue
             between samples
         Arguments:
-            batch_size (int): replay buffer batch 
+            batch_size (int): replay buffer batch
                 sample size
         """
         # sars = state, action, reward, state' (next_state)
@@ -159,7 +159,7 @@ class DQNAgent:
         for state, action, reward, next_state, done in sars_batch:
             # policy prediction for a given state
             q_values = self.q_model.predict(state)
-            
+
             # get Q_max
             q_value = self.get_target_q_value(next_state, reward)
 
@@ -180,27 +180,27 @@ class DQNAgent:
         # update exploration-exploitation probability
         self.update_epsilon()
 
-        # copy new params on old target after 
+        # copy new params on old target after
         # every 10 training updates
         if self.replay_counter % 10 == 0:
             self.update_weights()
 
         self.replay_counter += 1
 
-    
+
     def update_epsilon(self):
         """decrease the exploration, increase exploitation"""
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
-        
+
 
 class DDQNAgent(DQNAgent):
     def __init__(self,
-                 state_space, 
-                 action_space, 
+                 state_space,
+                 action_space,
                  episodes=500):
-        super().__init__(state_space, 
-                         action_space, 
+        super().__init__(state_space,
+                         action_space,
                          episodes)
         """DDQN Agent on CartPole-v0 environment
 
@@ -216,7 +216,7 @@ class DDQNAgent(DQNAgent):
 
     def get_target_q_value(self, next_state, reward):
         """compute Q_max
-           Use of target Q Network solves the 
+           Use of target Q Network solves the
             non-stationarity problem
         Arguments:
             reward (float): reward received after executing
@@ -261,11 +261,11 @@ if __name__ == '__main__':
     # the number of trials without falling over
     win_trials = 100
 
-    # the CartPole-v0 is considered solved if 
-    # for 100 consecutive trials, he cart pole has not 
-    # fallen over and it has achieved an average 
-    # reward of 195.0 
-    # a reward of +1 is provided for every timestep 
+    # the CartPole-v0 is considered solved if
+    # for 100 consecutive trials, he cart pole has not
+    # fallen over and it has achieved an average
+    # reward of 195.0
+    # a reward of +1 is provided for every timestep
     # the pole remains upright
     win_reward = { 'CartPole-v0' : 195.0 }
 
@@ -325,7 +325,7 @@ if __name__ == '__main__':
         # call experience relay
         if len(agent.memory) >= batch_size:
             agent.replay(batch_size)
-    
+
         scores.append(total_reward)
         mean_score = np.mean(scores)
         if mean_score >= win_reward[args.env_id] \
@@ -342,4 +342,4 @@ if __name__ == '__main__':
                   ((episode + 1), mean_score, win_trials))
 
     # close the env and write monitor result info to disk
-    env.close() 
+    env.close()
