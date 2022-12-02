@@ -16,13 +16,13 @@ References:
 
 """
 
-from tensorflow.keras.layers import Dense, Input
-from tensorflow.keras.layers import Lambda, Activation
-from tensorflow.keras.models import Model
-from tensorflow.keras.optimizers import Adam, RMSprop
-from tensorflow.keras import backend as K
-from tensorflow.keras.utils import get_custom_objects
-from tensorflow.keras.utils import plot_model
+from keras.layers import Dense, Input
+from keras.layers import Lambda, Activation
+from keras.models import Model
+from keras.optimizers import Adam, RMSprop
+from keras import backend as K
+from keras.utils import get_custom_objects
+from keras.utils import plot_model
 
 import tensorflow as tf
 import tensorflow_probability as tfp
@@ -39,7 +39,7 @@ import math
 
 
 def softplusk(x):
-    """Some implementations use a modified softplus 
+    """Some implementations use a modified softplus
         to ensure that the stddev is never zero
     Argument:
         x (tensor): activation input
@@ -49,7 +49,7 @@ def softplusk(x):
 
 class PolicyAgent:
     def __init__(self, env):
-        """Implements the models and training of 
+        """Implements the models and training of
             Policy Gradient Methods
         Argument:
             env (Object): OpenAI gym environment
@@ -60,7 +60,7 @@ class PolicyAgent:
         self.beta = 0.0
         # value loss for all policy gradients except A2C
         self.loss = self.value_loss
-        
+
         # s,a,r,s' are stored in memory
         self.memory = []
 
@@ -72,7 +72,7 @@ class PolicyAgent:
 
 
     def reset_memory(self):
-        """Clear the memory before the start 
+        """Clear the memory before the start
             of every episode
         """
         self.memory = []
@@ -85,9 +85,9 @@ class PolicyAgent:
 
 
     def action(self, args):
-        """Given mean and stddev, sample an action, clip 
+        """Given mean and stddev, sample an action, clip
             and return
-            We assume Gaussian distribution of probability 
+            We assume Gaussian distribution of probability
             of selecting an action given a state
         Argument:
             args (list) : mean, stddev list
@@ -118,7 +118,7 @@ class PolicyAgent:
 
 
     def entropy(self, args):
-        """Given the mean and stddev compute 
+        """Given the mean and stddev compute
             the Gaussian dist entropy
         Argument:
             args (list) : mean, stddev list
@@ -145,33 +145,33 @@ class PolicyAgent:
         self.encoder = Model(inputs, feature, name='encoder')
         self.encoder.summary()
         plot_model(self.encoder,
-                   to_file='encoder.png', 
+                   to_file='encoder.png',
                    show_shapes=True)
 
         # build the decoder model
-        feature_inputs = Input(shape=(feature_size,), 
+        feature_inputs = Input(shape=(feature_size,),
                                name='decoder_input')
         x = Dense(128, activation='relu')(feature_inputs)
         x = Dense(256, activation='relu')(x)
         outputs = Dense(self.state_dim, activation='linear')(x)
 
         # instantiate decoder model
-        self.decoder = Model(feature_inputs, 
-                             outputs, 
+        self.decoder = Model(feature_inputs,
+                             outputs,
                              name='decoder')
         self.decoder.summary()
-        plot_model(self.decoder, 
-                   to_file='decoder.png', 
+        plot_model(self.decoder,
+                   to_file='decoder.png',
                    show_shapes=True)
 
         # autoencoder = encoder + decoder
         # instantiate autoencoder model
-        self.autoencoder = Model(inputs, 
+        self.autoencoder = Model(inputs,
                                  self.decoder(self.encoder(inputs)),
                                  name='autoencoder')
         self.autoencoder.summary()
-        plot_model(self.autoencoder, 
-                   to_file='autoencoder.png', 
+        plot_model(self.autoencoder,
+                   to_file='autoencoder.png',
                    show_shapes=True)
 
         # Mean Square Error (MSE) loss function, Adam optimizer
@@ -197,12 +197,12 @@ class PolicyAgent:
     def build_actor_critic(self):
         """4 models are built but 3 models share the
             same parameters. hence training one, trains the rest.
-            The 3 models that share the same parameters 
-                are action, logp, and entropy models. 
+            The 3 models that share the same parameters
+                are action, logp, and entropy models.
             Entropy model is used by A2C only.
             Each model has the same MLP structure:
             Input(2)-Encoder-Output(1).
-            The output activation depends on the nature 
+            The output activation depends on the nature
                 of the output.
         """
         inputs = Input(shape=(self.state_dim, ), name='state')
@@ -222,8 +222,8 @@ class PolicyAgent:
                         name='action')([mean, stddev])
         self.actor_model = Model(inputs, action, name='action')
         self.actor_model.summary()
-        plot_model(self.actor_model, 
-                   to_file='actor_model.png', 
+        plot_model(self.actor_model,
+                   to_file='actor_model.png',
                    show_shapes=True)
 
         logp = Lambda(self.logp,
@@ -231,8 +231,8 @@ class PolicyAgent:
                       name='logp')([mean, stddev, action])
         self.logp_model = Model(inputs, logp, name='logp')
         self.logp_model.summary()
-        plot_model(self.logp_model, 
-                   to_file='logp_model.png', 
+        plot_model(self.logp_model,
+                   to_file='logp_model.png',
                    show_shapes=True)
 
         entropy = Lambda(self.entropy,
@@ -240,8 +240,8 @@ class PolicyAgent:
                          name='entropy')([mean, stddev])
         self.entropy_model = Model(inputs, entropy, name='entropy')
         self.entropy_model.summary()
-        plot_model(self.entropy_model, 
-                   to_file='entropy_model.png', 
+        plot_model(self.entropy_model,
+                   to_file='entropy_model.png',
                    show_shapes=True)
 
         value = Dense(1,
@@ -250,13 +250,13 @@ class PolicyAgent:
                       name='value')(x)
         self.value_model = Model(inputs, value, name='value')
         self.value_model.summary()
-        plot_model(self.value_model, 
-                   to_file='value_model.png', 
+        plot_model(self.value_model,
+                   to_file='value_model.png',
                    show_shapes=True)
 
 
         # logp loss of policy network
-        loss = self.logp_loss(self.get_entropy(self.state), 
+        loss = self.logp_loss(self.get_entropy(self.state),
                               beta=self.beta)
         optimizer = RMSprop(lr=1e-3)
         self.logp_model.compile(loss=loss, optimizer=optimizer)
@@ -266,8 +266,8 @@ class PolicyAgent:
 
 
     def logp_loss(self, entropy, beta=0.0):
-        """logp loss, the 3rd and 4th variables 
-            (entropy and beta) are needed by A2C 
+        """logp loss, the 3rd and 4th variables
+            (entropy and beta) are needed by A2C
             so we have a different loss function structure
         Arguments:
             entropy (tensor): Entropy loss
@@ -283,9 +283,9 @@ class PolicyAgent:
 
 
     def value_loss(self, y_true, y_pred):
-        """Typical loss function structure that accepts 
+        """Typical loss function structure that accepts
             2 arguments only
-           This will be used by value loss of all methods 
+           This will be used by value loss of all methods
             except A2C
         Arguments:
             y_true (tensor): value ground truth
@@ -297,9 +297,9 @@ class PolicyAgent:
         return loss
 
 
-    def save_weights(self, 
-                     actor_weights, 
-                     encoder_weights, 
+    def save_weights(self,
+                     actor_weights,
+                     encoder_weights,
                      value_weights=None):
         """Save the actor, critic and encoder weights
             useful for restoring the trained models
@@ -315,10 +315,10 @@ class PolicyAgent:
 
 
     def load_weights(self,
-                     actor_weights, 
+                     actor_weights,
                      value_weights=None):
         """Load the trained weights
-           useful if we are interested in using 
+           useful if we are interested in using
                 the network right away
         Arguments:
             actor_weights (string): filename containing actor net
@@ -330,10 +330,10 @@ class PolicyAgent:
         if value_weights is not None:
             self.value_model.load_weights(value_weights)
 
-    
+
     def load_encoder_weights(self, encoder_weights):
         """Load encoder trained weights
-           useful if we are interested in using 
+           useful if we are interested in using
             the network right away
         Arguments:
             encoder_weights (string): filename containing encoder net
@@ -341,7 +341,7 @@ class PolicyAgent:
         """
         self.encoder.load_weights(encoder_weights)
 
-    
+
     def act(self, state):
         """Call the policy network to sample an action
         Argument:
@@ -377,12 +377,12 @@ class PolicyAgent:
 
 class REINFORCEAgent(PolicyAgent):
     def __init__(self, env):
-        """Implements the models and training of 
+        """Implements the models and training of
            REINFORCE policy gradient method
         Arguments:
             env (Object): OpenAI gym environment
         """
-        super().__init__(env) 
+        super().__init__(env)
 
     def train_by_episode(self):
         """Train by episode
@@ -414,7 +414,7 @@ class REINFORCEAgent(PolicyAgent):
 
 
     def train(self, item, gamma=1.0):
-        """Main routine for training 
+        """Main routine for training
         Arguments:
             item (list) : one experience unit
             gamma (float) : discount factor [0,1]
@@ -445,17 +445,17 @@ class REINFORCEAgent(PolicyAgent):
 
 class REINFORCEBaselineAgent(REINFORCEAgent):
     def __init__(self, env):
-        """Implements the models and training of 
-           REINFORCE w/ baseline policy 
+        """Implements the models and training of
+           REINFORCE w/ baseline policy
            gradient method
         Arguments:
             env (Object): OpenAI gym environment
         """
-        super().__init__(env) 
+        super().__init__(env)
 
 
     def train(self, item, gamma=1.0):
-        """Main routine for training 
+        """Main routine for training
         Arguments:
             item (list) : one experience unit
             gamma (float) : discount factor [0,1]
@@ -468,7 +468,7 @@ class REINFORCEBaselineAgent(REINFORCEAgent):
         discount_factor = gamma**step
 
         # reinforce-baseline: delta = return - value
-        delta = reward - self.value(state)[0] 
+        delta = reward - self.value(state)[0]
 
         # apply the discount factor as shown in Algorithms
         # 10.2.1, 10.3.1 and 10.4.1
@@ -494,12 +494,12 @@ class REINFORCEBaselineAgent(REINFORCEAgent):
 
 class A2CAgent(PolicyAgent):
     def __init__(self, env):
-        """Implements the models and training of 
+        """Implements the models and training of
            A2C policy gradient method
         Arguments:
             env (Object): OpenAI gym environment
         """
-        super().__init__(env) 
+        super().__init__(env)
         # beta of entropy used in A2C
         self.beta = 0.9
         # loss function of A2C value_model is mse
@@ -507,7 +507,7 @@ class A2CAgent(PolicyAgent):
 
 
     def train_by_episode(self, last_value=0):
-        """Train by episode 
+        """Train by episode
            Prepare the dataset before the step by step training
         Arguments:
             last_value (float): previous prediction of value net
@@ -530,7 +530,7 @@ class A2CAgent(PolicyAgent):
 
 
     def train(self, item, gamma=1.0):
-        """Main routine for training 
+        """Main routine for training
         Arguments:
             item (list) : one experience unit
             gamma (float) : discount factor [0,1]
@@ -543,7 +543,7 @@ class A2CAgent(PolicyAgent):
         discount_factor = gamma**step
 
         # a2c: delta = discounted_reward - value
-        delta = reward - self.value(state)[0] 
+        delta = reward - self.value(state)[0]
 
         discounted_delta = delta * discount_factor
         discounted_delta = np.reshape(discounted_delta, [-1, 1])
@@ -573,12 +573,12 @@ class A2CAgent(PolicyAgent):
 
 class ActorCriticAgent(PolicyAgent):
     def __init__(self, env):
-        """Implements the models and training of 
+        """Implements the models and training of
            Actor Critic policy gradient method
         Arguments:
             env (Object): OpenAI gym environment
         """
-        super().__init__(env) 
+        super().__init__(env)
 
 
     def train(self, item, gamma=1.0):
@@ -594,9 +594,9 @@ class ActorCriticAgent(PolicyAgent):
 
         discount_factor = gamma**step
 
-        # actor-critic: delta = reward - value 
+        # actor-critic: delta = reward - value
         #       + discounted_next_value
-        delta = reward - self.value(state)[0] 
+        delta = reward - self.value(state)[0]
 
         # since this function is called by Actor-Critic
         # directly, evaluate the value function here
@@ -759,7 +759,7 @@ def setup_writer(fileid, postfix):
         fileid (string): unique file identfier
         postfix (string): path
     """
-    # we dump episode num, step, total reward, and 
+    # we dump episode num, step, total reward, and
     # number of episodes solved in a csv file for analysis
     csvfilename = "%s.csv" % fileid
     csvfilename = os.path.join(postfix, csvfilename)
@@ -786,11 +786,11 @@ if __name__ == '__main__':
     env = gym.make(args.env_id)
     env = wrappers.Monitor(env, directory=outdir, force=True)
     env.seed(0)
-    
+
     # register softplusk activation. just in case the reader wants
     # to use this activation
     get_custom_objects().update({'softplusk':Activation(softplusk)})
-   
+
     agent, train = setup_agent(env, args)
 
     if args.train or train:
@@ -800,7 +800,7 @@ if __name__ == '__main__':
     # number of episodes we run the training
     episode_count = 1000
     state_dim = env.observation_space.shape[0]
-    n_solved = 0 
+    n_solved = 0
     # sampling and fitting
     for episode in range(episode_count):
         state = env.reset()
@@ -836,7 +836,7 @@ if __name__ == '__main__':
                 agent.train(item, gamma=0.99)
             elif not args.random and done and train:
                 # for REINFORCE, REINFORCE with baseline, and A2C
-                # we wait for the completion of the episode before 
+                # we wait for the completion of the episode before
                 # training the network(s)
                 # last value as used by A2C
                 if args.a2c:
@@ -877,4 +877,4 @@ if __name__ == '__main__':
     # close the env and write monitor result info to disk
     if train:
         csvfile.close()
-    env.close() 
+    env.close()
