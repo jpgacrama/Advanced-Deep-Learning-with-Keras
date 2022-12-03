@@ -13,10 +13,10 @@ from __future__ import unicode_literals
 import numpy as np
 import config
 import math
-from tensorflow.keras import backend as K
+from keras import backend as K
 
 def anchor_sizes(n_layers=4):
-    """Generate linear distribution of sizes depending on 
+    """Generate linear distribution of sizes depending on
     the number of ssd top layers
 
     Arguments:
@@ -53,7 +53,7 @@ def anchor_boxes(feature_shape,
     Returns:
         boxes (tensor): Anchor boxes per feature map
     """
-    
+
     # anchor box sizes given an index of layer in ssd head
     sizes = anchor_sizes(n_layers)[index]
     # number of anchor boxes per feature map pt
@@ -71,7 +71,7 @@ def anchor_boxes(feature_shape,
     # list of anchor boxes (width, height)
     width_height = []
     # anchor box by aspect ratio on resized image dims
-    # Equation 11.2.3 
+    # Equation 11.2.3
     for ar in aspect_ratios:
         box_width = norm_width * np.sqrt(ar)
         box_height = norm_height / np.sqrt(ar)
@@ -90,9 +90,9 @@ def anchor_boxes(feature_shape,
     grid_height = image_height / feature_height
 
     # compute center of receptive field per feature pt
-    # (cx, cy) format 
+    # (cx, cy) format
     # starting at midpoint of 1st receptive field
-    start = grid_width * 0.5 
+    start = grid_width * 0.5
     # ending at midpoint of last receptive field
     end = (feature_width - 0.5) * grid_width
     cx = np.linspace(start, end, feature_width)
@@ -105,14 +105,14 @@ def anchor_boxes(feature_shape,
     cx_grid, cy_grid = np.meshgrid(cx, cy)
 
     # for np.tile()
-    cx_grid = np.expand_dims(cx_grid, -1) 
+    cx_grid = np.expand_dims(cx_grid, -1)
     cy_grid = np.expand_dims(cy_grid, -1)
 
     # tensor = (feature_map_height, feature_map_width, n_boxes, 4)
     # aligned with image tensor (height, width, channels)
     # last dimension = (cx, cy, w, h)
     boxes = np.zeros((feature_height, feature_width, n_boxes, 4))
-    
+
     # (cx, cy)
     boxes[..., 0] = np.tile(cx_grid, (1, 1, n_boxes))
     boxes[..., 1] = np.tile(cy_grid, (1, 1, n_boxes))
@@ -122,7 +122,7 @@ def anchor_boxes(feature_shape,
     boxes[..., 3] = width_height[:, 1]
 
     # convert (cx, cy, w, h) to (xmin, xmax, ymin, ymax)
-    # prepend one dimension to boxes 
+    # prepend one dimension to boxes
     # to account for the batch size = 1
     boxes = centroid2minmax(boxes)
     boxes = np.expand_dims(boxes, axis=0)
@@ -130,7 +130,7 @@ def anchor_boxes(feature_shape,
 
 
 def centroid2minmax(boxes):
-    """Centroid to minmax format 
+    """Centroid to minmax format
     (cx, cy, w, h) to (xmin, xmax, ymin, ymax)
 
     Arguments:
@@ -159,9 +159,9 @@ def minmax2centroid(boxes):
     """
     centroid = np.copy(boxes).astype(np.float)
     centroid[..., 0] = 0.5 * (boxes[..., 1] - boxes[..., 0])
-    centroid[..., 0] += boxes[..., 0] 
+    centroid[..., 0] += boxes[..., 0]
     centroid[..., 1] = 0.5 * (boxes[..., 3] - boxes[..., 2])
-    centroid[..., 1] += boxes[..., 2] 
+    centroid[..., 1] += boxes[..., 2]
     centroid[..., 2] = boxes[..., 1] - boxes[..., 0]
     centroid[..., 3] = boxes[..., 3] - boxes[..., 2]
     return centroid
@@ -170,7 +170,7 @@ def minmax2centroid(boxes):
 
 def intersection(boxes1, boxes2):
     """Compute intersection of batch of boxes1 and boxes2
-    
+
     Arguments:
         boxes1 (tensor): Boxes coordinates in pixels
         boxes2 (tensor): Boxes coordinates in pixels
@@ -260,7 +260,7 @@ def get_gt_data(iou,
                 normalize=False,
                 threshold=0.6):
     """Retrieve ground truth class, bbox offset, and mask
-    
+
     Arguments:
         iou (tensor): IoU of each bounding box wrt each anchor box
         n_classes (int): Number of object classes
@@ -277,7 +277,7 @@ def get_gt_data(iou,
     # each maxiou_per_get is index of anchor w/ max iou
     # for the given ground truth bounding box
     maxiou_per_gt = np.argmax(iou, axis=0)
-    
+
     # get extra anchor boxes based on IoU
     if threshold < 1.0:
         iou_gt_thresh = np.argwhere(iou>threshold)
@@ -311,7 +311,7 @@ def get_gt_data(iou,
     row_col = np.append(maxiou_col, label_col, axis=1)
     # the label of object in maxio_per_gt
     gt_class[row_col[:,0], row_col[:,1]]  = 1.0
-    
+
     # offsets generation
     gt_offset = np.zeros((iou.shape[0], 4))
 
@@ -329,9 +329,9 @@ def get_gt_data(iou,
 
         # log(bbox width / anchor box width) / 0.2
         # log(bbox height / anchor box height) / 0.2
-        # Equation 11.4.8 
+        # Equation 11.4.8
         offsets2 = np.log(labels[:, 2:4]/anchors[maxiou_per_gt, 2:4])
-        offsets2 /= 0.2  
+        offsets2 /= 0.2
 
         offsets = np.concatenate([offsets1, offsets2], axis=-1)
 
